@@ -1,4 +1,3 @@
-
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,15 +23,21 @@ public class LoginWindowController {
     @FXML private PasswordField password;
     @FXML private TextField IP;
     @FXML private Label label;
+    static Socket clientSocket = null;
     static DataInputStream dIS = null;
     static DataOutputStream dOS = null;
     static ArrayList<String> onlineUsers = new ArrayList<>();
 
+    FriendListController friendListController;
+
     @FXML public void login() throws Exception{
         label.setVisible(false);
-        Socket clientSocket = new Socket(IP.getText(), 4310);
-        dIS = new DataInputStream(clientSocket.getInputStream());
-        dOS = new DataOutputStream(clientSocket.getOutputStream());
+        if (clientSocket == null) {
+            clientSocket = new Socket(IP.getText(), 4310);
+            dIS = new DataInputStream(clientSocket.getInputStream());
+            dOS = new DataOutputStream(clientSocket.getOutputStream());
+        }
+
         Thread th = new Thread(){
             public void run(){
                 try {
@@ -47,7 +52,6 @@ public class LoginWindowController {
                                     // if message is from server
                                     if (text.substring(3, index).equals("t")){
                                         // if true, log user into another window
-                                        // use platform bc UI can only be updated in JavaFX thread
                                         Platform.runLater(new Runnable() {
                                             @Override
                                             public void run() {
@@ -72,6 +76,14 @@ public class LoginWindowController {
                                     else {
                                         // if this is a name
                                         onlineUsers.add(text.substring(3, index));
+                                        final int s = index;
+                                        Platform.runLater(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                friendListController.changeNum(Integer.toString(onlineUsers.size()));
+                                                friendListController.addUser(text.substring(3, s));
+                                            }
+                                        });
                                     }
                                 }
                                 else {
@@ -97,9 +109,6 @@ public class LoginWindowController {
     }
 
     @FXML public void signUp() throws Exception{
-        String userName = name.getText();
-        String pass = password.getText();
-        String ipField = IP.getText();
         label.setVisible(false);
     }
 
@@ -108,19 +117,30 @@ public class LoginWindowController {
         stage.close();
     }
 
-    public void openFriendListWindow(String userName) throws Exception{
+    public synchronized void openFriendListWindow(String userName) throws Exception{
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("view/FriendList.fxml"));
         Pane root = loader.load();
-        FriendListController controller = loader.getController();
-        controller.changeName(userName);
-        controller.changeNum(Integer.toString(onlineUsers.size()));
+        friendListController= loader.getController();
+        friendListController.changeName(userName);
+        friendListController.changeNum(Integer.toString(onlineUsers.size()));
         Scene scene = new Scene(root, 300, 700);
         stage.setTitle("Friend List");
         stage.setScene(scene);
         stage.show();
         // close the login window
-//        close();
+        close();
+    }
+
+    public void sendSignUpData(){
+        String userName = name.getText();
+        String pass = password.getText();
+        try {
+            dOS.write(("^u^" + userName + "|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
+            dOS.write(("^p^" + pass + "|").getBytes(Charset.forName("UTF-8")));
+        } catch (Exception e){
+            System.out.println(e.toString());
+        }
     }
 
     public void sendLoginData(){
