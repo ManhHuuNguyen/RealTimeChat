@@ -12,6 +12,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class FriendListController {
@@ -21,6 +22,7 @@ public class FriendListController {
     @FXML private Label name;
     @FXML private Label onlineUserNum;
     @FXML private ListView<String> onlineUserList;
+    public static ArrayList<ChatWindowController> chatWindowList = new ArrayList<>();
 
     public void changeName(String string){
         name.setText(string);
@@ -41,16 +43,16 @@ public class FriendListController {
         System.out.println(file.getAbsolutePath());
         Image img = new Image(file.getAbsolutePath());
         avatar.setImage(img);
-
     }
 
     @FXML public void addFriend(){
-        System.out.println("You have no friend. Get real!!!");
+        System.out.println("Number of chat opened: " + chatWindowList.size());
     }
 
     @FXML public void handleMouseClick(MouseEvent arg) throws Exception{
-        System.out.println("clicked on " + onlineUserList.getSelectionModel().getSelectedItem());
-        openChatWindow(onlineUserList.getSelectionModel().getSelectedItem());
+        String chosen = onlineUserList.getSelectionModel().getSelectedItem();
+        openChatWindow(chosen);
+        LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
     }
 
     public synchronized void openChatWindow(String name) throws Exception{
@@ -62,7 +64,7 @@ public class FriendListController {
         stage.setTitle(name);
         stage.setScene(scene);
         stage.show();
-
+        chatWindowList.add(controller);
     }
 
 }

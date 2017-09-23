@@ -8,7 +8,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
@@ -31,6 +30,104 @@ public class LoginWindowController {
     FriendListController friendListController;
 
     @FXML public void login() throws Exception{
+        label.setVisible(false);
+        if (clientSocket == null){
+            clientSocket = new Socket(IP.getText(), 4310);
+            dIS = new DataInputStream(clientSocket.getInputStream());
+            dOS = new DataOutputStream(clientSocket.getOutputStream());
+        }
+
+        Thread th = new Thread(){
+            public void run(){
+                try {
+                    byte[] byteStream = new byte[8096];
+                    int index = 0;
+                    while (true) {
+                        if (dIS.available() > 0) {
+                            byte b = dIS.readByte();
+                            if (b == (byte) ('|')) {
+                                String text = new String(byteStream, "UTF-8");
+                                if (text.substring(0, 3).equals("#t#")){
+                                    // if text message
+                                    String fromUser = text.substring(3, text.indexOf("$%^"));
+                                    System.out.println(fromUser);
+                                    System.out.println(text.substring(text.indexOf("$%^")+3, index));
+                                }
+                                else if (text.substring(0, 3).equals("%s%")){
+                                    // if message is from server about login/signup
+                                    if (text.substring(3, index).equals("t")){
+                                        // if true, log user into another window
+                                        Platform.runLater(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    openFriendListWindow(name.getText());
+                                                } catch (Exception e){
+                                                    System.out.println(e);
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else if (text.substring(3, index).equals("f")){
+                                        // if false, print error message and clear input fields
+                                        Platform.runLater(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                changeWarningText("Wrong username or password");
+                                                clearInputField();
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        // if this is a name
+                                        onlineUsers.add(text.substring(3, index));
+                                        final int s = index;
+                                        Platform.runLater(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                friendListController.changeNum(Integer.toString(onlineUsers.size()));
+                                                friendListController.addUser(text.substring(3, s));
+                                            }
+                                        });
+                                    }
+                                }
+                                else if (text.substring(0, 3).equals("@s@")){
+                                    // if message is about requesting new window
+                                    final int s = index; // to allow it to be used in platform.runlater
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                friendListController.openChatWindow(text.substring(3, s));
+                                            } catch (Exception e){
+                                                System.out.println(e);
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    // if message is from other users
+                                }
+                                byteStream = new byte[8096];
+                                index = 0;
+                            } else {
+                                byteStream[index] = b;
+                                index += 1;
+                            }
+                        } else {
+                            sleep(10);
+                        }
+                    }
+                } catch (Exception e){
+                    System.out.println(e);
+                }
+            }
+        };
+        th.start();
+        sendLoginData();
+    }
+
+    @FXML public void signUp() throws Exception{
         label.setVisible(false);
         if (clientSocket == null) {
             clientSocket = new Socket(IP.getText(), 4310);
@@ -68,7 +165,7 @@ public class LoginWindowController {
                                         Platform.runLater(new Runnable() {
                                             @Override
                                             public void run() {
-                                                changeWarningText("Wrong username or password");
+                                                changeWarningText("Username or password already in use");
                                                 clearInputField();
                                             }
                                         });
@@ -105,11 +202,7 @@ public class LoginWindowController {
             }
         };
         th.start();
-        sendLoginData();
-    }
-
-    @FXML public void signUp() throws Exception{
-        label.setVisible(false);
+        sendSignUpData();
     }
 
     @FXML public void close(){
