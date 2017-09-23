@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Server {
 
     public static MySqlCon database = null;
-    public static ArrayList<User> activeUsers = new ArrayList<>();
+    public static ArrayList<User> activeUsers = new ArrayList<>(); // I might change this to a HashMap later
 
     public static void start() throws Exception {
         database = new MySqlCon("jdbc:mysql://localhost:3306/chatApp","root","root");
@@ -32,7 +32,11 @@ public class Server {
                                 byte b = dIS.readByte();
                                 if (b == (byte) ('|')) {
                                     String text = new String(byteStream, "UTF-8");
-                                    if (text.substring(0, 3).equals("*u*")){// if username
+                                    if (text.substring(0, 3).equals("&t&")){ // if text message
+                                        dOS.write(("#t#" + username + "$%^" + text.substring(3, index) + "|").
+                                                getBytes(Charset.forName("UTF-8")));
+                                    }
+                                    else if (text.substring(0, 3).equals("*u*")){// if username
                                         username = text.substring(3, index);
                                     }
                                     else if (text.substring(0, 3).equals("*p*")){// if password
@@ -62,17 +66,30 @@ public class Server {
                                             // if user is not created
                                             // add new username and password to database
                                             database.update(String.format(
-                                                    "INSERT INTO users (username, password) VALUES ('%s', '%s');", username, password));
+                                                    "INSERT INTO users (name, password) VALUES ('%s', '%s');", username, password));
                                             activeUsers.add(new User(dIS, dOS, username));
                                             System.out.println("Sign up successfully for user " + username);
                                             // send confirmation to client so that clients open to user
+                                            dOS.write(("%s%" + "t" + "|").getBytes(Charset.forName("UTF-8")));
+                                            // for each active user, send this new username string to them
+                                            for (int i=0; i<activeUsers.size()-1; i++){
+                                                // announce to each online user about the new arrival
+                                                activeUsers.get(i).dOS.write(("%s%" + username + "|").getBytes(Charset.forName("UTF-8")));
+                                                // alert the user of every online user (excluding himself)
+                                                dOS.write(("%s%" + activeUsers.get(i).userName + "|").getBytes(Charset.forName("UTF-8")));
+                                            }
                                         }
                                         else {
                                             // if user is already created
+                                            dOS.write(("%s%" + "f" + "|").getBytes(Charset.forName("UTF-8")));
                                         }
                                     }
+                                    else if (text.substring(0, 3).equals("^o^")){
+                                        System.out.println("Request opening windows with user " + text.substring(3, index));
+                                        findUserByName(text.substring(3, index)).dOS.write(("@s@" + username + "|").getBytes(Charset.forName("UTF-8")));
+                                    }
                                     else {
-                                        // if text message
+
                                     }
                                     byteStream = new byte[8096];
                                     index = 0;
@@ -93,6 +110,15 @@ public class Server {
             };
             th.start();
         }
+    }
+
+    public static User findUserByName(String name){
+        for (int i=0; i<activeUsers.size(); i++){
+            if (activeUsers.get(i).userName.equals(name)){
+                return activeUsers.get(i);
+            }
+        }
+        return null;
     }
 
     public static boolean checkUserLogin(String usn, String pw) throws Exception{
