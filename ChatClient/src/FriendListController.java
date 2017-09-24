@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FriendListController {
 
@@ -22,7 +22,16 @@ public class FriendListController {
     @FXML private Label name;
     @FXML private Label onlineUserNum;
     @FXML private ListView<String> onlineUserList;
-    public static ArrayList<ChatWindowController> chatWindowList = new ArrayList<>();
+    public static HashMap<String, ChatWindowController> chatWindowList = new HashMap();
+    private String username = null;
+
+    public void setUsername(String username){
+        this.username = username;
+    }
+
+    public String getUsername(){
+        return username;
+    }
 
     public void changeName(String string){
         name.setText(string);
@@ -55,16 +64,18 @@ public class FriendListController {
         LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
     }
 
-    public synchronized void openChatWindow(String name) throws Exception{
+    public synchronized void openChatWindow(String toUser) throws Exception{
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("view/ChatWindow.fxml"));
         Pane root = loader.load();
         ChatWindowController controller = loader.getController();
+        controller.toUser = toUser;
+        controller.userName = username;
         Scene scene = new Scene(root, 500, 500);
-        stage.setTitle(name);
+        stage.setTitle(toUser);
         stage.setScene(scene);
         stage.show();
-        chatWindowList.add(controller);
+        chatWindowList.put(toUser, controller);
     }
 
 }

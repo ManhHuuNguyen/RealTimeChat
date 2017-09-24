@@ -10,6 +10,8 @@ public class ChatWindowController {
     @FXML private Button sendButton;
     @FXML private TextField textField;
     @FXML private TextArea textArea;
+    public String toUser = null;
+    public String userName = null;
 
     @FXML public void appendText(String text){
         textArea.appendText(text + "\n");
@@ -18,8 +20,8 @@ public class ChatWindowController {
     @FXML public void sendText() throws Exception{
         String msg = textField.getText();
         textField.clear();
-        textArea.appendText(msg + "\n");
-        LoginWindowController.dOS.write(("&t&" + msg + "|").getBytes(Charset.forName("UTF-8")));
+        textArea.appendText(userName + ": " + msg + "\n");
+        LoginWindowController.dOS.write(("&t&" + toUser + "$%^" + msg + "|").getBytes(Charset.forName("UTF-8")));
     }
 
 }

@@ -8,6 +8,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
@@ -51,7 +52,10 @@ public class LoginWindowController {
                                     // if text message
                                     String fromUser = text.substring(3, text.indexOf("$%^"));
                                     System.out.println(fromUser);
+                                    System.out.println("Key set: " + FriendListController.chatWindowList.keySet());
                                     System.out.println(text.substring(text.indexOf("$%^")+3, index));
+                                    FriendListController.chatWindowList.get(fromUser).appendText(
+                                            fromUser + ":" + text.substring(text.indexOf("$%^")+3, index));
                                 }
                                 else if (text.substring(0, 3).equals("%s%")){
                                     // if message is from server about login/signup
@@ -99,6 +103,7 @@ public class LoginWindowController {
                                         public void run() {
                                             try {
                                                 friendListController.openChatWindow(text.substring(3, s));
+
                                             } catch (Exception e){
                                                 System.out.println(e);
                                             }
@@ -211,11 +216,13 @@ public class LoginWindowController {
     }
 
     public synchronized void openFriendListWindow(String userName) throws Exception{
+        System.out.println("This is the client of user: " + userName);
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("view/FriendList.fxml"));
         Pane root = loader.load();
         friendListController= loader.getController();
-        friendListController.changeName(userName);
+        friendListController.setUsername(userName);
+        friendListController.changeName(friendListController.getUsername());
         friendListController.changeNum(Integer.toString(onlineUsers.size()));
         Scene scene = new Scene(root, 300, 700);
         stage.setTitle("Friend List");
