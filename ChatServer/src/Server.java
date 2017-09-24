@@ -33,7 +33,9 @@ public class Server {
                                 if (b == (byte) ('|')) {
                                     String text = new String(byteStream, "UTF-8");
                                     if (text.substring(0, 3).equals("&t&")){ // if text message
-                                        dOS.write(("#t#" + username + "$%^" + text.substring(3, index) + "|").
+                                        String toUser = text.substring(3, text.indexOf("$%^"));
+                                        findUserByName(toUser).dOS.write
+                                                (("#t#" + username + "$%^" + text.substring(text.indexOf("$%^")+3, index) + "|").
                                                 getBytes(Charset.forName("UTF-8")));
                                     }
                                     else if (text.substring(0, 3).equals("*u*")){// if username
