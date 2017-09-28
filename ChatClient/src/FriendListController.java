@@ -10,7 +10,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -55,13 +54,15 @@ public class FriendListController {
     }
 
     @FXML public void addFriend(){
-        System.out.println("Number of chat opened: " + chatWindowList.size());
+        onlineUserNum.setText("Dude, you have no friend. Get real!!!");
     }
 
     @FXML public void handleMouseClick(MouseEvent arg) throws Exception{
         String chosen = onlineUserList.getSelectionModel().getSelectedItem();
-        openChatWindow(chosen);
-        LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
+        if (!chatWindowList.containsKey(chosen)){ // check if that window is already opened
+            openChatWindow(chosen);
+            LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
+        }
     }
 
     public synchronized void openChatWindow(String toUser) throws Exception{
@@ -71,11 +72,11 @@ public class FriendListController {
         ChatWindowController controller = loader.getController();
         controller.toUser = toUser;
         controller.userName = username;
+        chatWindowList.put(toUser, controller);
         Scene scene = new Scene(root, 500, 500);
         stage.setTitle(toUser);
         stage.setScene(scene);
         stage.show();
-        chatWindowList.put(toUser, controller);
     }
 
 }

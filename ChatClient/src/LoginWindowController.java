@@ -8,7 +8,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
@@ -50,12 +49,20 @@ public class LoginWindowController {
                                 String text = new String(byteStream, "UTF-8");
                                 if (text.substring(0, 3).equals("#t#")){
                                     // if text message
-                                    String fromUser = text.substring(3, text.indexOf("$%^"));
-                                    System.out.println(fromUser);
-                                    System.out.println("Key set: " + FriendListController.chatWindowList.keySet());
-                                    System.out.println(text.substring(text.indexOf("$%^")+3, index));
+                                    int indexOfSeparator = text.indexOf("$%^");
+                                    String fromUser = text.substring(3, indexOfSeparator);
                                     FriendListController.chatWindowList.get(fromUser).appendText(
-                                            fromUser + ":" + text.substring(text.indexOf("$%^")+3, index));
+                                            fromUser + ":" + text.substring(indexOfSeparator+3, index));
+                                }
+                                else if (text.substring(0, 3).equals("!t^")){
+                                    // retrieve past messages
+                                    int firstIndex = text.indexOf("$%^");
+                                    String windowName = text.substring(3, firstIndex);
+                                    while(FriendListController.chatWindowList.get(windowName)==null){
+                                        sleep(10); // bad practice...
+                                    }
+                                    FriendListController.chatWindowList.get(windowName).appendText(
+                                            text.substring(firstIndex+3, index));
                                 }
                                 else if (text.substring(0, 3).equals("%s%")){
                                     // if message is from server about login/signup
