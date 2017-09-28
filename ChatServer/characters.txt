@@ -4,3 +4,5 @@
 #t# + text: write to user
 |: end of message
 name + $%^: write to client window with specified name
+
+!t^ + writer +  + msg: write past message to client

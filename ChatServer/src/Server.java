@@ -34,9 +34,22 @@ public class Server {
                                     String text = new String(byteStream, "UTF-8");
                                     if (text.substring(0, 3).equals("&t&")){ // if text message
                                         String toUser = text.substring(3, text.indexOf("$%^"));
+                                        String userMessage = text.substring(text.indexOf("$%^")+3, index);
                                         findUserByName(toUser).dOS.write
-                                                (("#t#" + username + "$%^" + text.substring(text.indexOf("$%^")+3, index) + "|").
+                                                (("#t#" + username + "$%^" + userMessage + "|").
                                                 getBytes(Charset.forName("UTF-8")));
+                                        String chatRoom1 = username + toUser;
+                                        String chatRoom2 = toUser + username;
+                                        if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom1))).next()){
+                                            System.out.println(username + ":" + userMessage);
+                                            database.update(String.format(
+                                                    "INSERT INTO %s (writer, msg) VALUES ('%s', '%s');", filter(chatRoom1), filter(username), filter(userMessage)));
+                                        }
+                                        else if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom2))).next()){
+                                            System.out.println(username + ":" + userMessage);
+                                            database.update(String.format(
+                                                    "INSERT INTO %s (writer, msg) VALUES ('%s', '%s');", filter(chatRoom2), filter(username), filter(userMessage)));
+                                        }
                                     }
                                     else if (text.substring(0, 3).equals("*u*")){// if username
                                         username = text.substring(3, index);
@@ -68,7 +81,7 @@ public class Server {
                                             // if user is not created
                                             // add new username and password to database
                                             database.update(String.format(
-                                                    "INSERT INTO users (name, password) VALUES ('%s', '%s');", username, password));
+                                                    "INSERT INTO users (name, password) VALUES ('%s', '%s');", filter(username), filter(password)));
                                             activeUsers.add(new User(dIS, dOS, username));
                                             System.out.println("Sign up successfully for user " + username);
                                             // send confirmation to client so that clients open to user
@@ -87,8 +100,34 @@ public class Server {
                                         }
                                     }
                                     else if (text.substring(0, 3).equals("^o^")){
-                                        System.out.println("Request opening windows with user " + text.substring(3, index));
-                                        findUserByName(text.substring(3, index)).dOS.write(("@s@" + username + "|").getBytes(Charset.forName("UTF-8")));
+                                        String toUser = text.substring(3, index);
+                                        findUserByName(toUser).dOS.write(("@s@" + username + "|").getBytes(Charset.forName("UTF-8")));
+                                        String chatRoom = toUser + username;
+                                        String chatRoom2 = username + toUser;
+                                        if(database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom))).next()){
+                                            ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom)));
+                                            System.out.println(chatRoom + " exists");
+                                            while (pastMsg.next()){
+                                                String writer = pastMsg.getString("writer");
+                                                String msg = pastMsg.getString("msg");
+                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
+                                                findUserByName(toUser).dOS.write(("!t^" + username + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
+                                            }
+                                        }
+                                        else if (database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom2))).next()){
+                                            ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom2)));
+                                            System.out.println(chatRoom2 + " exists");
+                                            while (pastMsg.next()){
+                                                String writer = pastMsg.getString("writer");
+                                                String msg = pastMsg.getString("msg");
+                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
+                                                findUserByName(toUser).dOS.write(("!t^" + username + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
+
+                                            }
+                                        }
+                                        else { // if chat room doesn't exist, create new one
+                                            database.update(String.format("CREATE TABLE %s (writer VARCHAR(255), msg TEXT);", filter(chatRoom)));
+                                        }
                                     }
                                     else {
 
@@ -125,11 +164,21 @@ public class Server {
 
     public static boolean checkUserLogin(String usn, String pw) throws Exception{
         ResultSet user = database.query(
-                String.format("SELECT * FROM users WHERE name = '%s' AND password = '%s'", usn, pw));
+                String.format("SELECT * FROM users WHERE name = '%s' AND password = '%s';", filter(usn), filter(pw)));
         return user.next();
     }
     public static boolean checkUserSignUp(String usn) throws Exception{
-        ResultSet user = database.query(String.format("SELECT * FROM users WHERE name = '%s'", usn));
+        ResultSet user = database.query(String.format("SELECT * FROM users WHERE name = '%s';", filter(usn)));
         return user.next();
+    }
+
+    public static String filter(String str){
+        for (int i=0; i<str.length(); i++){
+            if ((str.charAt(i)=='"') || (str.charAt(i)=='\'')){
+                str = str.substring(0, i) + "\\" + str.substring(i);
+                i+=1;
+            }
+        }
+        return str;
     }
 }
