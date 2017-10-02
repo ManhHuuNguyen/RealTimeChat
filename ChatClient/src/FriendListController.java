@@ -65,8 +65,8 @@ public class FriendListController {
 
     @FXML public void handleMouseClick(MouseEvent arg) throws Exception{
         String chosen = onlineUserList.getSelectionModel().getSelectedItem();
-        if (chosen != null && !chatWindowList.containsKey(chosen)){ // check if that window is already opened
-            openChatWindow(chosen);
+        if (openChatWindow(chosen)) {
+            // you will forget why you did this, but it needs to be done...Trust me, future Manh
             LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
         }
     }
@@ -76,8 +76,8 @@ public class FriendListController {
         onlineUserList.getItems().addAll(onlineUsers);
     }
 
-    public synchronized void openChatWindow(String toUser) throws Exception {
-        if (!chatWindowList.containsKey(toUser)) {
+    public synchronized boolean openChatWindow(String toUser) throws Exception {
+        if (toUser != null && !chatWindowList.containsKey(toUser)) {
             Stage stage = new Stage();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("view/ChatWindow.fxml"));
             Pane root = loader.load();
@@ -95,7 +95,9 @@ public class FriendListController {
                     chatWindowList.remove(toUser);
                 }
             });
+            return  true;
         }
+        return false;
     }
 
 }

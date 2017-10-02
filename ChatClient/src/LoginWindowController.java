@@ -23,12 +23,11 @@ public class LoginWindowController {
     @FXML private PasswordField password;
     @FXML private TextField IP;
     @FXML private Label label;
-    static Socket clientSocket = null;
-    static DataInputStream dIS = null;
-    static DataOutputStream dOS = null;
-    static ArrayList<String> onlineUsers = new ArrayList<>();
-
-    FriendListController friendListController;
+    public static Socket clientSocket = null;
+    public static DataInputStream dIS = null;
+    public static DataOutputStream dOS = null;
+    public static ArrayList<String> onlineUsers = new ArrayList<>();
+    public FriendListController friendListController;
 
     @FXML public void login() throws Exception{
         label.setVisible(false);
