@@ -6,3 +6,4 @@
 name + $%^: write to client window with specified name
 
 !t^ + writer +  + msg: write past message to client
+^o>: check if user is still online

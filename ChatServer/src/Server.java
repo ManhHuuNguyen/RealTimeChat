@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.net.SocketException;
 
 public class Server {
 
@@ -18,7 +19,7 @@ public class Server {
         while (true){
             Socket clientSocket = listener.accept();
             System.out.println("Connection accepted!!!");
-            Thread th = new Thread() {
+            Thread messageThread = new Thread() {
                 public void run() {
                     try {
                         DataInputStream dIS = new DataInputStream(clientSocket.getInputStream());
@@ -27,12 +28,14 @@ public class Server {
                         int index = 0;
                         String username = "";
                         String password = "";
+                        long lastTimeSent = System.currentTimeMillis();
                         while (true) {
                             if (dIS.available() > 0) {
                                 byte b = dIS.readByte();
                                 if (b == (byte) ('|')) {
                                     String text = new String(byteStream, "UTF-8");
-                                    if (text.substring(0, 3).equals("&t&")){ // if text message
+                                    String header = text.substring(0, 3);
+                                    if (header.equals("&t&")){ // if text message
                                         String toUser = text.substring(3, text.indexOf("$%^"));
                                         String userMessage = text.substring(text.indexOf("$%^")+3, index);
                                         findUserByName(toUser).dOS.write
@@ -41,30 +44,46 @@ public class Server {
                                         String chatRoom1 = username + toUser;
                                         String chatRoom2 = toUser + username;
                                         if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom1))).next()){
-                                            System.out.println(username + ":" + userMessage);
                                             database.update(String.format(
                                                     "INSERT INTO %s (writer, msg) VALUES ('%s', '%s');", filter(chatRoom1), filter(username), filter(userMessage)));
                                         }
                                         else if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom2))).next()){
-                                            System.out.println(username + ":" + userMessage);
                                             database.update(String.format(
                                                     "INSERT INTO %s (writer, msg) VALUES ('%s', '%s');", filter(chatRoom2), filter(username), filter(userMessage)));
                                         }
                                     }
-                                    else if (text.substring(0, 3).equals("*u*")){// if username
+                                    else if (header.equals("^o>")){
+                                        // sending back the list of current online users
+                                        String usrString = "";
+                                        for (int i=0; i<activeUsers.size(); i++){
+                                            usrString = usrString + activeUsers.get(i).userName + "###";
+                                        }
+                                        for (int i = 0; i < activeUsers.size(); i++) {
+                                            try{
+                                                activeUsers.get(i).dOS.write(("%s%" + usrString + "|").getBytes(Charset.forName("UTF-8")));
+                                            } catch (SocketException e){
+                                                e.printStackTrace();
+                                            }
+                                        }
+
+                                    }
+                                    else if (header.equals("*u*")){// if username
                                         username = text.substring(3, index);
                                     }
-                                    else if (text.substring(0, 3).equals("*p*")){// if password
-                                        password = text.substring(3, index);
+                                    else if (header.equals("*p*")){// if password
+                                        password = text.substring(3, index); // for login
                                         if (checkUserLogin(username, password)){// if password and username match
                                             activeUsers.add(new User(dIS, dOS, username));
                                             System.out.println("Logged in successfully for user " + username);
                                             // send confirmation to client so that client opens to user
                                             dOS.write(("%s%" + "t" + "|").getBytes(Charset.forName("UTF-8")));
-                                            // for each active user, send this new username string to them
-                                            for (int i=0; i<activeUsers.size()-1; i++){
-                                                activeUsers.get(i).dOS.write(("%s%" + username + "|").getBytes(Charset.forName("UTF-8")));
-                                                dOS.write(("%s%" + activeUsers.get(i).userName + "|").getBytes(Charset.forName("UTF-8")));
+                                            // for each active user, send this new username string full of names to them
+                                            String usrString = "";
+                                            for (int i=0; i<activeUsers.size(); i++){
+                                                usrString = usrString + activeUsers.get(i).userName + "###";
+                                            }
+                                            for (int i=0; i<activeUsers.size(); i++){
+                                                activeUsers.get(i).dOS.write(("%s%" + usrString + "|").getBytes(Charset.forName("UTF-8")));
                                             }
                                         }
                                         else {
@@ -72,10 +91,10 @@ public class Server {
                                             dOS.write(("%s%" + "f" + "|").getBytes(Charset.forName("UTF-8")));
                                         }
                                     }
-                                    else if (text.substring(0, 3).equals("^u^")){
+                                    else if (header.equals("^u^")){ // for sign up
                                         username = text.substring(3, index);
                                     }
-                                    else if (text.substring(0, 3).equals("^p^")){
+                                    else if (header.equals("^p^")){
                                         password = text.substring(3, index);
                                         if (!checkUserSignUp(username)){
                                             // if user is not created
@@ -99,7 +118,7 @@ public class Server {
                                             dOS.write(("%s%" + "f" + "|").getBytes(Charset.forName("UTF-8")));
                                         }
                                     }
-                                    else if (text.substring(0, 3).equals("^o^")){
+                                    else if (header.equals("^o^")){
                                         String toUser = text.substring(3, index);
                                         findUserByName(toUser).dOS.write(("@s@" + username + "|").getBytes(Charset.forName("UTF-8")));
                                         String chatRoom = toUser + username;
@@ -143,14 +162,26 @@ public class Server {
                             else {
                                 sleep(10);
                             }
+
+                            if (System.currentTimeMillis() - lastTimeSent > 1000){
+                                lastTimeSent = System.currentTimeMillis();
+                                try {
+                                    dOS.write("^o>|".getBytes(Charset.forName("UTF-8")));
+                                } catch (SocketException e){
+                                    System.out.println("remove user...");
+                                    activeUsers.remove(findUserByName(username));
+                                    interrupt();
+                                }
+                            }
                         }
                     } catch (Exception e){
-                        System.out.println(e);
+                        e.printStackTrace();
                     }
                 }
             };
-            th.start();
+            messageThread.start();
         }
+
     }
 
     public static User findUserByName(String name){
