@@ -1,3 +1,4 @@
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -10,6 +11,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -62,7 +65,7 @@ public class FriendListController {
 
     @FXML public void handleMouseClick(MouseEvent arg) throws Exception{
         String chosen = onlineUserList.getSelectionModel().getSelectedItem();
-        if (!chatWindowList.containsKey(chosen)){ // check if that window is already opened
+        if (chosen != null && !chatWindowList.containsKey(chosen)){ // check if that window is already opened
             openChatWindow(chosen);
             LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
         }
@@ -73,18 +76,26 @@ public class FriendListController {
         onlineUserList.getItems().addAll(onlineUsers);
     }
 
-    public synchronized void openChatWindow(String toUser) throws Exception{
-        Stage stage = new Stage();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("view/ChatWindow.fxml"));
-        Pane root = loader.load();
-        ChatWindowController controller = loader.getController();
-        controller.toUser = toUser;
-        controller.userName = username;
-        chatWindowList.put(toUser, controller);
-        Scene scene = new Scene(root, 500, 500);
-        stage.setTitle(toUser);
-        stage.setScene(scene);
-        stage.show();
+    public synchronized void openChatWindow(String toUser) throws Exception {
+        if (!chatWindowList.containsKey(toUser)) {
+            Stage stage = new Stage();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("view/ChatWindow.fxml"));
+            Pane root = loader.load();
+            ChatWindowController controller = loader.getController();
+            controller.toUser = toUser;
+            controller.userName = username;
+            chatWindowList.put(toUser, controller);
+            Scene scene = new Scene(root, 500, 500);
+            stage.setTitle(toUser);
+            stage.setScene(scene);
+            stage.show();
+            stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    chatWindowList.remove(toUser);
+                }
+            });
+        }
     }
 
 }

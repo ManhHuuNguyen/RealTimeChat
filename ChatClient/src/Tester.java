@@ -1,10 +1,12 @@
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Tester {
 
     public static void main (String[] args){
-        String a = "124'";
-        System.out.println(filter(a));
+        String a = "66/22/11/";
+        String[] b = a.split("/");
+        System.out.println(Arrays.toString(b));
     }
 
     public static String filter(String str){
