@@ -12,6 +12,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class FriendListController {
@@ -44,6 +45,8 @@ public class FriendListController {
         onlineUserList.getItems().add(string);
     }
 
+
+
     @FXML public void changeAvatar(){
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose new avatar");
@@ -63,6 +66,11 @@ public class FriendListController {
             openChatWindow(chosen);
             LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
         }
+    }
+
+    public void updateOnlineUser(ArrayList<String> onlineUsers){
+        onlineUserList.getItems().clear();
+        onlineUserList.getItems().addAll(onlineUsers);
     }
 
     public synchronized void openChatWindow(String toUser) throws Exception{

@@ -13,6 +13,7 @@ import java.io.DataOutputStream;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LoginWindowController {
 
@@ -47,14 +48,15 @@ public class LoginWindowController {
                             byte b = dIS.readByte();
                             if (b == (byte) ('|')) {
                                 String text = new String(byteStream, "UTF-8");
-                                if (text.substring(0, 3).equals("#t#")){
+                                String header = text.substring(0, 3);
+                                if (header.equals("#t#")){
                                     // if text message
                                     int indexOfSeparator = text.indexOf("$%^");
                                     String fromUser = text.substring(3, indexOfSeparator);
                                     FriendListController.chatWindowList.get(fromUser).appendText(
                                             fromUser + ":" + text.substring(indexOfSeparator+3, index));
                                 }
-                                else if (text.substring(0, 3).equals("!t^")){
+                                else if (header.equals("!t^")){
                                     // retrieve past messages
                                     int firstIndex = text.indexOf("$%^");
                                     String windowName = text.substring(3, firstIndex);
@@ -64,7 +66,10 @@ public class LoginWindowController {
                                     FriendListController.chatWindowList.get(windowName).appendText(
                                             text.substring(firstIndex+3, index));
                                 }
-                                else if (text.substring(0, 3).equals("%s%")){
+                                else if (header.equals("^o>")){
+                                    dOS.write("^o>|".getBytes(Charset.forName("UTF-8")));
+                                }
+                                else if (header.equals("%s%")){
                                     // if message is from server about login/signup
                                     if (text.substring(3, index).equals("t")){
                                         // if true, log user into another window
@@ -74,7 +79,7 @@ public class LoginWindowController {
                                                 try {
                                                     openFriendListWindow(name.getText());
                                                 } catch (Exception e){
-                                                    System.out.println(e);
+                                                    e.printStackTrace();
                                                 }
                                             }
                                         });
@@ -90,19 +95,20 @@ public class LoginWindowController {
                                         });
                                     }
                                     else {
-                                        // if this is a name
-                                        onlineUsers.add(text.substring(3, index));
+                                        // if this is a list of name
+                                        onlineUsers = new ArrayList<String>(Arrays.asList(text.substring(3, index).split("###")));
+                                        onlineUsers.remove(name.getText());
                                         final int s = index;
                                         Platform.runLater(new Runnable() {
                                             @Override
                                             public void run() {
                                                 friendListController.changeNum(Integer.toString(onlineUsers.size()));
-                                                friendListController.addUser(text.substring(3, s));
+                                                friendListController.updateOnlineUser(onlineUsers);
                                             }
                                         });
                                     }
                                 }
-                                else if (text.substring(0, 3).equals("@s@")){
+                                else if (header.equals("@s@")){
                                     // if message is about requesting new window
                                     final int s = index; // to allow it to be used in platform.runlater
                                     Platform.runLater(new Runnable() {
@@ -112,7 +118,7 @@ public class LoginWindowController {
                                                 friendListController.openChatWindow(text.substring(3, s));
 
                                             } catch (Exception e){
-                                                System.out.println(e);
+                                                e.printStackTrace();
                                             }
                                         }
                                     });
@@ -126,12 +132,13 @@ public class LoginWindowController {
                                 byteStream[index] = b;
                                 index += 1;
                             }
-                        } else {
+                        }
+                        else {
                             sleep(10);
                         }
                     }
                 } catch (Exception e){
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
             }
         };
@@ -167,7 +174,7 @@ public class LoginWindowController {
                                                 try {
                                                     openFriendListWindow(name.getText());
                                                 } catch (Exception e){
-                                                    System.out.println(e);
+                                                    e.printStackTrace();
                                                 }
                                             }
                                         });
@@ -209,7 +216,7 @@ public class LoginWindowController {
                         }
                     }
                 } catch (Exception e){
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
             }
         };
@@ -246,7 +253,7 @@ public class LoginWindowController {
             dOS.write(("^u^" + userName + "|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
             dOS.write(("^p^" + pass + "|").getBytes(Charset.forName("UTF-8")));
         } catch (Exception e){
-            System.out.println(e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -257,7 +264,7 @@ public class LoginWindowController {
             dOS.write(("*u*" + userName + "|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
             dOS.write(("*p*" + pass + "|").getBytes(Charset.forName("UTF-8")));
         } catch (Exception e){
-            System.out.println(e.toString());
+            e.printStackTrace();
         }
     }
 

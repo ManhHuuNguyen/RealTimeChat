@@ -7,3 +7,4 @@
 ^o^ + name : request to server open a new window connecting to the user with that name
 &t& + text: text message sent from user to server
 name + $%^: write to server with specified name
+^o>: send back to confirm that user is still online
