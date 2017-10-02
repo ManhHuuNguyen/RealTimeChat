@@ -72,7 +72,7 @@ public class Server {
                                     }
                                     else if (header.equals("*p*")){// if password
                                         password = text.substring(3, index); // for login
-                                        if (checkUserLogin(username, password)){// if password and username match
+                                        if (checkUserLogin(username, password) && findUserByName(username)==null){// if password and username match
                                             activeUsers.add(new User(dIS, dOS, username));
                                             System.out.println("Logged in successfully for user " + username);
                                             // send confirmation to client so that client opens to user
