@@ -65,7 +65,10 @@ public class Server {
                                                 e.printStackTrace();
                                             }
                                         }
-
+                                    }
+                                    else if (header.equals(")*(")){
+                                        System.out.println("Remove user...");
+                                        activeUsers.remove(findUserByName(text.substring(3, index)));
                                     }
                                     else if (header.equals("*u*")){// if username
                                         username = text.substring(3, index);
