@@ -53,7 +53,7 @@ public class LoginWindowController {
                                     int indexOfSeparator = text.indexOf("$%^");
                                     String fromUser = text.substring(3, indexOfSeparator);
                                     FriendListController.chatWindowList.get(fromUser).appendText(
-                                            fromUser + ":" + text.substring(indexOfSeparator+3, index));
+                                            fromUser + ": " + text.substring(indexOfSeparator+3, index));
                                 }
                                 else if (header.equals("!t^")){
                                     // retrieve past messages
@@ -114,7 +114,11 @@ public class LoginWindowController {
                                         @Override
                                         public void run() {
                                             try {
-                                                friendListController.openChatWindow(text.substring(3, s));
+                                                String fromUser = text.substring(3, s);
+                                                if (friendListController.openChatWindow(fromUser)){
+                                                    // if window is newly opened, request past messages
+                                                    dOS.write((")-&" + fromUser + "|").getBytes(Charset.forName("UTF-8")));
+                                                }
 
                                             } catch (Exception e){
                                                 e.printStackTrace();
@@ -123,7 +127,7 @@ public class LoginWindowController {
                                     });
                                 }
                                 else {
-                                    // if message is from other users
+                                    //
                                 }
                                 byteStream = new byte[8096];
                                 index = 0;

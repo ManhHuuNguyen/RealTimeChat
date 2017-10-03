@@ -20,7 +20,8 @@
             <Image url="@../images/anonymous.png" />
          </image>
       </ImageView>
-      <Label fx:id="onlineUserNum" layoutX="24.0" layoutY="99.0" text="0" />
+      <Label fx:id="onlineUserNum" layoutX="66.0" layoutY="98.0" prefHeight="16.0" prefWidth="17.0" text="0" />
       <ListView fx:id="onlineUserList" layoutX="10.0" layoutY="125.0" onMouseClicked="#handleMouseClick" prefHeight="561.0" prefWidth="279.0" />
+      <Label layoutX="14.0" layoutY="98.0" text="Online:" />
    </children>
 </Pane>

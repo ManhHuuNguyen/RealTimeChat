@@ -41,6 +41,9 @@ public class FriendListController {
                 try {
                     System.out.println("Closing down the app...");
                     LoginWindowController.dOS.write((")*(" + username + "|").getBytes(Charset.forName("UTF-8")));
+                    for (ChatWindowController controller: chatWindowList.values()){
+                        controller.stage.close();
+                    }
                 } catch (IOException e){
                     e.printStackTrace();
                 }
@@ -86,8 +89,9 @@ public class FriendListController {
     @FXML public void handleMouseClick(MouseEvent arg) throws Exception{
         String chosen = onlineUserList.getSelectionModel().getSelectedItem();
         if (openChatWindow(chosen)) {
-            // you will forget why you did this, but it needs to be done...Trust me, future Manh
+            // if chat window is opened successfully
             LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
+            LoginWindowController.dOS.write((")-&" + chosen + "|").getBytes(Charset.forName("UTF-8")));
         }
     }
 
