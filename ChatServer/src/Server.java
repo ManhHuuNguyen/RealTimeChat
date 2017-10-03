@@ -67,6 +67,7 @@ public class Server {
                                         }
                                     }
                                     else if (header.equals(")*(")){
+                                        // if user closes his FriendListWindow
                                         System.out.println("Remove user...");
                                         activeUsers.remove(findUserByName(text.substring(3, index)));
                                     }
@@ -92,6 +93,32 @@ public class Server {
                                         else {
                                             // if password and username not match, send to client to print out error message
                                             dOS.write(("%s%" + "f" + "|").getBytes(Charset.forName("UTF-8")));
+                                        }
+                                    }
+                                    else if (header.equals(")-&")){
+                                        System.out.println("Requesting past messages, not from user " + text.substring(3, index));
+                                        // request past messages
+                                        String toUser = text.substring(3, index);
+                                        String chatRoom = toUser + username;
+                                        String chatRoom2 = username + toUser;
+                                        if(database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom))).next()){
+                                            ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom)));
+                                            while (pastMsg.next()){
+                                                String writer = pastMsg.getString("writer");
+                                                String msg = pastMsg.getString("msg");
+                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ": " + msg + "|").getBytes(Charset.forName("UTF-8")));
+                                            }
+                                        }
+                                        else if (database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom2))).next()){
+                                            ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom2)));
+                                            while (pastMsg.next()){
+                                                String writer = pastMsg.getString("writer");
+                                                String msg = pastMsg.getString("msg");
+                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ": " + msg + "|").getBytes(Charset.forName("UTF-8")));
+                                            }
+                                        }
+                                        else { // if chat room doesn't exist, create new one
+                                            database.update(String.format("CREATE TABLE %s (writer VARCHAR(255), msg TEXT);", filter(chatRoom)));
                                         }
                                     }
                                     else if (header.equals("^u^")){ // for sign up
@@ -124,32 +151,6 @@ public class Server {
                                     else if (header.equals("^o^")){
                                         String toUser = text.substring(3, index);
                                         findUserByName(toUser).dOS.write(("@s@" + username + "|").getBytes(Charset.forName("UTF-8")));
-                                        String chatRoom = toUser + username;
-                                        String chatRoom2 = username + toUser;
-                                        if(database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom))).next()){
-                                            ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom)));
-                                            System.out.println(chatRoom + " exists");
-                                            while (pastMsg.next()){
-                                                String writer = pastMsg.getString("writer");
-                                                String msg = pastMsg.getString("msg");
-                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
-                                                findUserByName(toUser).dOS.write(("!t^" + username + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
-                                            }
-                                        }
-                                        else if (database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom2))).next()){
-                                            ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom2)));
-                                            System.out.println(chatRoom2 + " exists");
-                                            while (pastMsg.next()){
-                                                String writer = pastMsg.getString("writer");
-                                                String msg = pastMsg.getString("msg");
-                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
-                                                findUserByName(toUser).dOS.write(("!t^" + username + "$%^" + writer + ":" + msg + "|").getBytes(Charset.forName("UTF-8")));
-
-                                            }
-                                        }
-                                        else { // if chat room doesn't exist, create new one
-                                            database.update(String.format("CREATE TABLE %s (writer VARCHAR(255), msg TEXT);", filter(chatRoom)));
-                                        }
                                     }
                                     else {
 
