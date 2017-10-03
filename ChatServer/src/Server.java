@@ -18,7 +18,6 @@ public class Server {
         ServerSocket listener = new ServerSocket(4310);
         while (true){
             Socket clientSocket = listener.accept();
-            System.out.println("Connection accepted!!!");
             Thread messageThread = new Thread() {
                 public void run() {
                     try {
@@ -68,7 +67,6 @@ public class Server {
                                     }
                                     else if (header.equals(")*(")){
                                         // if user closes his FriendListWindow
-                                        System.out.println("Remove user...");
                                         activeUsers.remove(findUserByName(text.substring(3, index)));
                                     }
                                     else if (header.equals("*u*")){// if username
@@ -96,7 +94,6 @@ public class Server {
                                         }
                                     }
                                     else if (header.equals(")-&")){
-                                        System.out.println("Requesting past messages, not from user " + text.substring(3, index));
                                         // request past messages
                                         String toUser = text.substring(3, index);
                                         String chatRoom = toUser + username;
@@ -172,7 +169,6 @@ public class Server {
                                 try {
                                     dOS.write("^o>|".getBytes(Charset.forName("UTF-8")));
                                 } catch (SocketException e){
-                                    System.out.println("remove user...");
                                     activeUsers.remove(findUserByName(username));
                                     interrupt();
                                 }
