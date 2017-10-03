@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +27,26 @@ public class FriendListController {
     @FXML private Label onlineUserNum;
     @FXML private ListView<String> onlineUserList;
     public static HashMap<String, ChatWindowController> chatWindowList = new HashMap();
+    public Stage stage;
     private String username = null;
+
+    public void initialize(Stage stage, String username, String onlineUser){
+        this.stage = stage;
+        this.username = username;
+        changeName(this.username);
+        changeNum(onlineUser);
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                try {
+                    System.out.println("Closing down the app...");
+                    LoginWindowController.dOS.write((")*(" + username + "|").getBytes(Charset.forName("UTF-8")));
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
     public void setUsername(String username){
         this.username = username;
@@ -82,19 +102,12 @@ public class FriendListController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("view/ChatWindow.fxml"));
             Pane root = loader.load();
             ChatWindowController controller = loader.getController();
-            controller.toUser = toUser;
-            controller.userName = username;
+            controller.initialize(stage, toUser, username);
             chatWindowList.put(toUser, controller);
             Scene scene = new Scene(root, 500, 500);
             stage.setTitle(toUser);
             stage.setScene(scene);
             stage.show();
-            stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-                @Override
-                public void handle(WindowEvent event) {
-                    chatWindowList.remove(toUser);
-                }
-            });
             return  true;
         }
         return false;

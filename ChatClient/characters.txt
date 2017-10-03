@@ -8,3 +8,4 @@
 &t& + text: text message sent from user to server
 name + $%^: write to server with specified name
 ^o>: send back to confirm that user is still online
+)*( + username: send to server signaling that user has closed his program

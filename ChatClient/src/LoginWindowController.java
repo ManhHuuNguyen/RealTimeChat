@@ -234,9 +234,7 @@ public class LoginWindowController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("view/FriendList.fxml"));
         Pane root = loader.load();
         friendListController= loader.getController();
-        friendListController.setUsername(userName);
-        friendListController.changeName(friendListController.getUsername());
-        friendListController.changeNum(Integer.toString(onlineUsers.size()));
+        friendListController.initialize(stage, userName, Integer.toString(onlineUsers.size()));
         Scene scene = new Scene(root, 300, 700);
         stage.setTitle("Friend List");
         stage.setScene(scene);
