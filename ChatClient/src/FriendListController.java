@@ -83,7 +83,14 @@ public class FriendListController {
     }
 
     @FXML public void addFriend(){
-        onlineUserNum.setText("Dude, you have no friend. Get real!!!");
+        Stage stage = new Stage();
+        Pane root = new Pane();
+        root.setPrefWidth(300.0);
+        root.setPrefHeight(100.0);
+        root.getChildren().add(new Label("Dude, you have no friend. Get real!!!"));
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
     }
 
     @FXML public void handleMouseClick(MouseEvent arg) throws Exception{

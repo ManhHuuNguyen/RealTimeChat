@@ -28,6 +28,7 @@ public class LoginWindowController {
     public static DataOutputStream dOS = null;
     public static ArrayList<String> onlineUsers = new ArrayList<>();
     public FriendListController friendListController;
+//    public static final char[] endOfMessage = {'|', '>', '<'};
 
     @FXML public void login() throws Exception{
         label.setVisible(false);
@@ -131,7 +132,8 @@ public class LoginWindowController {
                                 }
                                 byteStream = new byte[8096];
                                 index = 0;
-                            } else {
+                            }
+                            else {
                                 byteStream[index] = b;
                                 index += 1;
                             }

@@ -10,5 +10,6 @@
       <TextArea fx:id="textArea" editable="false" layoutX="35.0" layoutY="26.0" prefHeight="327.0" prefWidth="429.0" />
       <TextField fx:id="textField" layoutX="35.0" layoutY="397.0" prefHeight="48.0" prefWidth="358.0" />
       <Button fx:id="sendButton" layoutX="402.0" layoutY="395.0" mnemonicParsing="false" onAction="#sendText" prefHeight="48.0" prefWidth="62.0" text="Send" />
+      <Button layoutX="331.0" layoutY="452.0" mnemonicParsing="false" text="image" />
    </children>
 </Pane>
