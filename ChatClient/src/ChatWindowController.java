@@ -1,8 +1,10 @@
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -12,7 +14,7 @@ public class ChatWindowController {
 
     @FXML private Button sendButton;
     @FXML private TextField textField;
-    @FXML private TextArea textArea;
+    @FXML private TextFlow textFlow;
     public String toUser = null;
     public String userName = null;
     public Stage stage;
@@ -30,13 +32,23 @@ public class ChatWindowController {
     }
 
     @FXML public void appendText(String text){
-        textArea.appendText(text + "\n");
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                textFlow.getChildren().add(new Text(text + "\n"));
+            }
+        });
     }
 
     @FXML public void sendText() throws Exception{
         String msg = textField.getText();
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                textFlow.getChildren().add(new Text(userName + ": " + msg + "\n"));
+            }
+        });
         textField.clear();
-        textArea.appendText(userName + ": " + msg + "\n");
         LoginWindowController.dOS.write(("&t&" + toUser + "$%^" + msg + "><|").getBytes(Charset.forName("UTF-8")));
     }
 
