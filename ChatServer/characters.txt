@@ -2,7 +2,7 @@
 %s% + f: server message failure
 @s@ + username: command user to open a new window with the name specified
 #t# + text: write to user
-|: end of message
+><|: end of message
 name + $%^: write to client window with specified name
 
 !t^ + writer +  + msg: write past message to client
