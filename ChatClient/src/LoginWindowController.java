@@ -28,7 +28,6 @@ public class LoginWindowController {
     public static DataOutputStream dOS = null;
     public static ArrayList<String> onlineUsers = new ArrayList<>();
     public FriendListController friendListController;
-//    public static final char[] endOfMessage = {'|', '>', '<'};
 
     @FXML public void login() throws Exception{
         label.setVisible(false);
@@ -46,7 +45,7 @@ public class LoginWindowController {
                     while (true) {
                         if (dIS.available() > 0) {
                             byte b = dIS.readByte();
-                            if (b == (byte) ('|')) {
+                            if (b == (byte) ('|') && byteStream[index-1]==(byte)('<') && byteStream[index-2]==(byte)('>')) {
                                 String text = new String(byteStream, "UTF-8");
                                 String header = text.substring(0, 3);
                                 if (header.equals("#t#")){
@@ -54,7 +53,7 @@ public class LoginWindowController {
                                     int indexOfSeparator = text.indexOf("$%^");
                                     String fromUser = text.substring(3, indexOfSeparator);
                                     FriendListController.chatWindowList.get(fromUser).appendText(
-                                            fromUser + ": " + text.substring(indexOfSeparator+3, index));
+                                            fromUser + ": " + text.substring(indexOfSeparator+3, index-2));
                                 }
                                 else if (header.equals("!t^")){
                                     // retrieve past messages
@@ -64,14 +63,14 @@ public class LoginWindowController {
                                         sleep(10); // bad practice...
                                     }
                                     FriendListController.chatWindowList.get(windowName).appendText(
-                                            text.substring(firstIndex+3, index));
+                                            text.substring(firstIndex+3, index-2));
                                 }
                                 else if (header.equals("^o>")){
-                                    dOS.write("^o>|".getBytes(Charset.forName("UTF-8")));
+                                    dOS.write("^o>><|".getBytes(Charset.forName("UTF-8")));
                                 }
                                 else if (header.equals("%s%")){
                                     // if message is from server about login/signup
-                                    if (text.substring(3, index).equals("t")){
+                                    if (text.substring(3, index-2).equals("t")){
                                         // if true, log user into another window
                                         Platform.runLater(new Runnable() {
                                             @Override
@@ -84,7 +83,7 @@ public class LoginWindowController {
                                             }
                                         });
                                     }
-                                    else if (text.substring(3, index).equals("f")){
+                                    else if (text.substring(3, index-2).equals("f")){
                                         // if false, print error message and clear input fields
                                         Platform.runLater(new Runnable() {
                                             @Override
@@ -96,9 +95,9 @@ public class LoginWindowController {
                                     }
                                     else {
                                         // if this is a list of name
-                                        onlineUsers = new ArrayList<String>(Arrays.asList(text.substring(3, index).split("###")));
+                                        onlineUsers = new ArrayList<String>(Arrays.asList(text.substring(3, index-2).split("###")));
                                         onlineUsers.remove(name.getText());
-                                        final int s = index;
+                                        final int s = index-2;
                                         Platform.runLater(new Runnable() {
                                             @Override
                                             public void run() {
@@ -110,7 +109,7 @@ public class LoginWindowController {
                                 }
                                 else if (header.equals("@s@")){
                                     // if message is about requesting new window
-                                    final int s = index; // to allow it to be used in platform.runlater
+                                    final int s = index-2; // to allow it to be used in platform.runlater
                                     Platform.runLater(new Runnable() {
                                         @Override
                                         public void run() {
@@ -118,7 +117,7 @@ public class LoginWindowController {
                                                 String fromUser = text.substring(3, s);
                                                 if (friendListController.openChatWindow(fromUser)){
                                                     // if window is newly opened, request past messages
-                                                    dOS.write((")-&" + fromUser + "|").getBytes(Charset.forName("UTF-8")));
+                                                    dOS.write((")-&" + fromUser + "><|").getBytes(Charset.forName("UTF-8")));
                                                 }
 
                                             } catch (Exception e){
@@ -253,8 +252,8 @@ public class LoginWindowController {
         String userName = name.getText();
         String pass = password.getText();
         try {
-            dOS.write(("^u^" + userName + "|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
-            dOS.write(("^p^" + pass + "|").getBytes(Charset.forName("UTF-8")));
+            dOS.write(("^u^" + userName + "><|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
+            dOS.write(("^p^" + pass + "><|").getBytes(Charset.forName("UTF-8")));
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -264,8 +263,8 @@ public class LoginWindowController {
         String userName = name.getText();
         String pass = password.getText();
         try {
-            dOS.write(("*u*" + userName + "|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
-            dOS.write(("*p*" + pass + "|").getBytes(Charset.forName("UTF-8")));
+            dOS.write(("*u*" + userName + "><|").getBytes(Charset.forName("UTF-8"))); // to differentiate between username, password, and comment
+            dOS.write(("*p*" + pass + "><|").getBytes(Charset.forName("UTF-8")));
         } catch (Exception e){
             e.printStackTrace();
         }

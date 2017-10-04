@@ -40,7 +40,7 @@ public class FriendListController {
             public void handle(WindowEvent event) {
                 try {
                     System.out.println("Closing down the app...");
-                    LoginWindowController.dOS.write((")*(" + username + "|").getBytes(Charset.forName("UTF-8")));
+                    LoginWindowController.dOS.write((")*(" + username + "><|").getBytes(Charset.forName("UTF-8")));
                     for (ChatWindowController controller: chatWindowList.values()){
                         controller.stage.close();
                     }
@@ -97,8 +97,8 @@ public class FriendListController {
         String chosen = onlineUserList.getSelectionModel().getSelectedItem();
         if (openChatWindow(chosen)) {
             // if chat window is opened successfully
-            LoginWindowController.dOS.write(("^o^" + chosen + "|").getBytes(Charset.forName("UTF-8")));
-            LoginWindowController.dOS.write((")-&" + chosen + "|").getBytes(Charset.forName("UTF-8")));
+            LoginWindowController.dOS.write(("^o^" + chosen + "><|").getBytes(Charset.forName("UTF-8")));
+            LoginWindowController.dOS.write((")-&" + chosen + "><|").getBytes(Charset.forName("UTF-8")));
         }
     }
 

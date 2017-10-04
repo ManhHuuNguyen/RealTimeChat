@@ -3,7 +3,7 @@
 *p* + password: send login password to server
 *u* + username: send login username to server
 
-|: end of a message
+><|: end of a message
 ^o^ + name : request to server open a new window connecting to the user with that name
 &t& + text: text message sent from user to server
 name + $%^: write to server with specified name

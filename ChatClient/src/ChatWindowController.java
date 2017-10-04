@@ -37,7 +37,7 @@ public class ChatWindowController {
         String msg = textField.getText();
         textField.clear();
         textArea.appendText(userName + ": " + msg + "\n");
-        LoginWindowController.dOS.write(("&t&" + toUser + "$%^" + msg + "|").getBytes(Charset.forName("UTF-8")));
+        LoginWindowController.dOS.write(("&t&" + toUser + "$%^" + msg + "><|").getBytes(Charset.forName("UTF-8")));
     }
 
 }
