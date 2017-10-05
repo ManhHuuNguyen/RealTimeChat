@@ -8,3 +8,4 @@ name + $%^: write to client window with specified name
 !t^ + writer +  + msg: write past message to client
 ^o>: check if user is still online
 .?. + username + $%^ + extension + ?|?: send image and the name of the sender to client
+{;= + toUser + $%^ + writer + /%\ + extension + $%^ + byte image: send past image, name of window, name of author, extension to client

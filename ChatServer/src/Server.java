@@ -18,7 +18,8 @@ public class Server {
     public static MySqlCon database = null;
     public static ArrayList<User> activeUsers = new ArrayList<>(); // I might change this to a HashMap later
     private static final int BYTE_STREAM_LENGTH = 40000;
-    public static int imgCounter = 0;
+    public static final String IMAGE_FOLDER_ROUTE = "/home/manh/Desktop/ChatServer/images/";
+    public static final File SAVE_IMAGE_FOLDER = new File(IMAGE_FOLDER_ROUTE);
 
     public static void start() throws Exception {
         database = new MySqlCon("jdbc:mysql://localhost:3306/chatApp","root","root");
@@ -52,11 +53,11 @@ public class Server {
                                         String chatRoom2 = toUser + username;
                                         if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom1))).next()){
                                             database.update(String.format(
-                                                    "INSERT INTO %s (writer, msg) VALUES ('%s', '%s');", filter(chatRoom1), filter(username), filter(userMessage)));
+                                                    "INSERT INTO %s (writer, msg, image) VALUES ('%s', '%s', 'F');", filter(chatRoom1), filter(username), filter(userMessage)));
                                         }
                                         else if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom2))).next()){
                                             database.update(String.format(
-                                                    "INSERT INTO %s (writer, msg) VALUES ('%s', '%s');", filter(chatRoom2), filter(username), filter(userMessage)));
+                                                    "INSERT INTO %s (writer, msg, image) VALUES ('%s', '%s', 'F');", filter(chatRoom2), filter(username), filter(userMessage)));
                                         }
                                     }
                                     else if (header.equals("^o>")){
@@ -106,12 +107,24 @@ public class Server {
                                         String toUser = text.substring(3, index-2);
                                         String chatRoom = toUser + username;
                                         String chatRoom2 = username + toUser;
+                                        User u = findUserByName(username);
                                         if(database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom))).next()){
                                             ResultSet pastMsg = database.query(String.format("SELECT * from %s;", filter(chatRoom)));
                                             while (pastMsg.next()){
                                                 String writer = pastMsg.getString("writer");
                                                 String msg = pastMsg.getString("msg");
-                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ": " + msg + "><|").getBytes(Charset.forName("UTF-8")));
+                                                String isImage = pastMsg.getString("image");
+                                                if (isImage.equals("F")) {
+                                                    u.dOS.write(("!t^" + toUser + "$%^" + writer + ": " + msg + "><|").getBytes(Charset.forName("UTF-8")));
+                                                }
+                                                else {
+                                                    File file = new File(IMAGE_FOLDER_ROUTE + msg);
+                                                    String extension = file.getName().substring(file.getName().lastIndexOf(".")+1);
+                                                    BufferedImage bufferedImage = ImageIO.read(file);
+                                                    u.dOS.write(("{;=" + toUser + "$%^" + writer + "/%\\" + extension + "$%^").getBytes(Charset.forName("UTF-8")));
+                                                    ImageIO.write(bufferedImage, extension, u.dOS);
+                                                    u.dOS.write("><|".getBytes(Charset.forName("UTF-8")));
+                                                }
                                             }
                                         }
                                         else if (database.query(String.format("SHOW TABLES LIKE '%s';", filter(chatRoom2))).next()){
@@ -119,11 +132,23 @@ public class Server {
                                             while (pastMsg.next()){
                                                 String writer = pastMsg.getString("writer");
                                                 String msg = pastMsg.getString("msg");
-                                                findUserByName(username).dOS.write(("!t^" + toUser + "$%^" + writer + ": " + msg + "><|").getBytes(Charset.forName("UTF-8")));
+                                                String isImage = pastMsg.getString("image");
+                                                if (isImage.equals("F")) {
+                                                    u.dOS.write(("!t^" + toUser + "$%^" + writer + ": " + msg + "><|").getBytes(Charset.forName("UTF-8")));
+                                                }
+                                                else {
+                                                    File file = new File(IMAGE_FOLDER_ROUTE + msg);
+                                                    String extension = file.getName().substring(file.getName().lastIndexOf(".")+1);
+                                                    System.out.println(file.getAbsolutePath());
+                                                    BufferedImage bufferedImage = ImageIO.read(file);
+                                                    u.dOS.write(("{;=" + toUser + "$%^" + writer + "/%\\" + extension + "$%^").getBytes(Charset.forName("UTF-8")));
+                                                    ImageIO.write(bufferedImage, extension, u.dOS);
+                                                    u.dOS.write("><|".getBytes(Charset.forName("UTF-8")));
+                                                }
                                             }
                                         }
                                         else { // if chat room doesn't exist, create new one
-                                            database.update(String.format("CREATE TABLE %s (writer VARCHAR(255), msg TEXT);", filter(chatRoom)));
+                                            database.update(String.format("CREATE TABLE %s (writer VARCHAR(255), msg TEXT, image VARCHAR(1));", filter(chatRoom)));
                                         }
                                     }
                                     else if (header.equals("^u^")){ // for sign up
@@ -166,11 +191,22 @@ public class Server {
                                         System.out.println("Sending image of type "+ extension + " to " + toUser);
                                         byte[] imageInByte = Arrays.copyOfRange(byteStream, secondIndexOf+3, index-2);
                                         BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageInByte));
-                                        ImageIO.write(img, extension, new File("/home/manh/Desktop/ChatServer/images/1." + extension));
+                                        String newFileName = Integer.toString(SAVE_IMAGE_FOLDER.listFiles().length+1) + "." + extension;
+                                        ImageIO.write(img, extension, new File(IMAGE_FOLDER_ROUTE + newFileName));
                                         User usr = findUserByName(toUser);
                                         usr.dOS.write((".?." + username + "$%^" + extension + "?|?").getBytes(Charset.forName("UTF-8")));
                                         usr.dOS.write(imageInByte);
                                         usr.dOS.write("><|".getBytes(Charset.forName("UTF-8")));
+                                        String chatRoom1 = username + toUser;
+                                        String chatRoom2 = toUser + username;
+                                        if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom1))).next()){
+                                            database.update(String.format(
+                                                    "INSERT INTO %s (writer, msg, image) VALUES ('%s', '%s', 'T');", filter(chatRoom1), filter(username), filter(newFileName)));
+                                        }
+                                        else if (database.query(String.format("SHOW TABLES LIKE '%s'", filter(chatRoom2))).next()){
+                                            database.update(String.format(
+                                                    "INSERT INTO %s (writer, msg, image) VALUES ('%s', '%s', 'T');", filter(chatRoom2), filter(username), filter(newFileName)));
+                                        }
                                     }
                                     else {
 
