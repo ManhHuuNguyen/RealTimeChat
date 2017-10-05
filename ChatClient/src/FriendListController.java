@@ -77,9 +77,10 @@ public class FriendListController {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose new avatar");
         File file = chooser.showOpenDialog(addFriendButton.getScene().getWindow());
-        System.out.println(file.getAbsolutePath());
-        Image img = new Image(file.getAbsolutePath());
-        avatar.setImage(img);
+        if (file != null) {
+            Image img = new Image(file.getAbsolutePath());
+            avatar.setImage(img);
+        }
     }
 
     @FXML public void addFriend(){

@@ -10,3 +10,4 @@ name + $%^: write to server with specified name
 ^o>: send back to confirm that user is still online
 )*( + username: send to server signaling that user has closed his program
 )-& + name: request past messages with this user
+$#* + user + $%^ + extension + ?|? + byte of image: send message image to server

@@ -8,8 +8,13 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -28,6 +33,7 @@ public class LoginWindowController {
     public static DataOutputStream dOS = null;
     public static ArrayList<String> onlineUsers = new ArrayList<>();
     public FriendListController friendListController;
+    private final int BYTE_STREAM_LENGTH = 40000;
 
     @FXML public void login() throws Exception{
         label.setVisible(false);
@@ -40,7 +46,7 @@ public class LoginWindowController {
         Thread th = new Thread(){
             public void run(){
                 try {
-                    byte[] byteStream = new byte[8096];
+                    byte[] byteStream = new byte[BYTE_STREAM_LENGTH];
                     int index = 0;
                     while (true) {
                         if (dIS.available() > 0) {
@@ -65,7 +71,20 @@ public class LoginWindowController {
                                     FriendListController.chatWindowList.get(windowName).appendText(
                                             text.substring(firstIndex+3, index-2));
                                 }
+                                else if (header.equals(".?.")){
+                                    int firstIndexOf = text.indexOf("$%^");
+                                    String windowName = text.substring(3, firstIndexOf);
+                                    int secondIndexOf = text.indexOf("?|?");
+                                    String extension = text.substring(firstIndexOf+3, secondIndexOf);
+                                    System.out.println("Receiving images of type " + extension + " from " + windowName);
+                                    byte[] imageInByte = Arrays.copyOfRange(byteStream, secondIndexOf+3, index-2);
+                                    BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageInByte));
+                                    ChatWindowController window = FriendListController.chatWindowList.get(windowName);
+                                    window.appendImage(img);
+                                    window.appendText("\n");
+                                }
                                 else if (header.equals("^o>")){
+                                    // check if user is still online
                                     dOS.write("^o>><|".getBytes(Charset.forName("UTF-8")));
                                 }
                                 else if (header.equals("%s%")){
@@ -129,7 +148,7 @@ public class LoginWindowController {
                                 else {
                                     //
                                 }
-                                byteStream = new byte[8096];
+                                byteStream = new byte[BYTE_STREAM_LENGTH];
                                 index = 0;
                             }
                             else {
@@ -161,7 +180,7 @@ public class LoginWindowController {
         Thread th = new Thread(){
             public void run(){
                 try {
-                    byte[] byteStream = new byte[8096];
+                    byte[] byteStream = new byte[2000];
                     int index = 0;
                     while (true) {
                         if (dIS.available() > 0) {
@@ -209,7 +228,7 @@ public class LoginWindowController {
                                 else {
                                     // if message is from other users
                                 }
-                                byteStream = new byte[8096];
+                                byteStream = new byte[BYTE_STREAM_LENGTH];
                                 index = 0;
                             } else {
                                 byteStream[index] = b;
