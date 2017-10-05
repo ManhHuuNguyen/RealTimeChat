@@ -72,16 +72,31 @@ public class LoginWindowController {
                                             text.substring(firstIndex+3, index-2));
                                 }
                                 else if (header.equals(".?.")){
+                                    // if image message
                                     int firstIndexOf = text.indexOf("$%^");
                                     String windowName = text.substring(3, firstIndexOf);
                                     int secondIndexOf = text.indexOf("?|?");
                                     String extension = text.substring(firstIndexOf+3, secondIndexOf);
-                                    System.out.println("Receiving images of type " + extension + " from " + windowName);
                                     byte[] imageInByte = Arrays.copyOfRange(byteStream, secondIndexOf+3, index-2);
                                     BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageInByte));
                                     ChatWindowController window = FriendListController.chatWindowList.get(windowName);
-                                    window.appendImage(img);
-                                    window.appendText("\n");
+                                    window.appendImage(img, windowName);
+                                }
+                                else if (header.equals("{;=")){
+                                    // retrieve past image message
+                                    int firstIndexOf = text.indexOf("$%^");
+                                    int secondIndexOf = text.indexOf("/%\\");
+                                    int lastIndexOf = text.lastIndexOf("$%^");
+                                    String windowName = text.substring(3, firstIndexOf);
+                                    String writer = text.substring(firstIndexOf+3, secondIndexOf);
+                                    String extension = text.substring(secondIndexOf+3, lastIndexOf);
+                                    byte[] imageInByte = Arrays.copyOfRange(byteStream, lastIndexOf+3, index-2);
+                                    BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageInByte));
+                                    while(FriendListController.chatWindowList.get(windowName)==null){
+                                        sleep(10); // bad practice...
+                                    }
+                                    FriendListController.chatWindowList.get(windowName).appendImage(img, writer);
+
                                 }
                                 else if (header.equals("^o>")){
                                     // check if user is still online
@@ -138,7 +153,6 @@ public class LoginWindowController {
                                                     // if window is newly opened, request past messages
                                                     dOS.write((")-&" + fromUser + "><|").getBytes(Charset.forName("UTF-8")));
                                                 }
-
                                             } catch (Exception e){
                                                 e.printStackTrace();
                                             }

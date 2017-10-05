@@ -48,11 +48,13 @@ public class ChatWindowController {
         });
     }
 
-    @FXML public void appendImage(BufferedImage img){
+    @FXML public void appendImage(BufferedImage img, String fromUser){
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                textFlow.getChildren().add(new Text(fromUser + ": "));
                 textFlow.getChildren().add(new ImageView(SwingFXUtils.toFXImage(img, null)));
+                textFlow.getChildren().add(new Text("\n"));
             }
         });
     }
@@ -73,6 +75,7 @@ public class ChatWindowController {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose new avatar");
         File file = chooser.showOpenDialog(sendImageButton.getScene().getWindow());
+        System.out.println("File size: " + file.length());
         if (file != null) {
             String extension = file.getName().substring(file.getName().lastIndexOf(".")+1);
             if (extension.equals("jpg") || extension.equals("png") || extension.equals("gif")) {
@@ -80,8 +83,7 @@ public class ChatWindowController {
                 LoginWindowController.dOS.write(("$#*" + toUser + "$%^" + extension + "?|?").getBytes(Charset.forName("UTF-8")));
                 ImageIO.write(bimg, extension, LoginWindowController.dOS);
                 LoginWindowController.dOS.write("><|".getBytes(Charset.forName("UTF-8")));
-                appendImage(bimg);
-                appendText("\n");
+                appendImage(bimg, userName);
             }
         }
     }
