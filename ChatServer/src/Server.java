@@ -1,16 +1,24 @@
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.net.SocketException;
+import java.util.Arrays;
 
 public class Server {
 
     public static MySqlCon database = null;
     public static ArrayList<User> activeUsers = new ArrayList<>(); // I might change this to a HashMap later
+    private static final int BYTE_STREAM_LENGTH = 40000;
+    public static int imgCounter = 0;
 
     public static void start() throws Exception {
         database = new MySqlCon("jdbc:mysql://localhost:3306/chatApp","root","root");
@@ -23,7 +31,7 @@ public class Server {
                     try {
                         DataInputStream dIS = new DataInputStream(clientSocket.getInputStream());
                         DataOutputStream dOS = new DataOutputStream(clientSocket.getOutputStream());
-                        byte[] byteStream = new byte[8096];
+                        byte[] byteStream = new byte[BYTE_STREAM_LENGTH];
                         int index = 0;
                         String username = "";
                         String password = "";
@@ -149,10 +157,25 @@ public class Server {
                                         String toUser = text.substring(3, index-2);
                                         findUserByName(toUser).dOS.write(("@s@" + username + "><|").getBytes(Charset.forName("UTF-8")));
                                     }
+                                    else if (header.equals("$#*")){
+                                        // get byte, recompose the image, save it to the folder then send it to the receiving client
+                                        int firstIndexOf = text.indexOf("$%^");
+                                        String toUser = text.substring(3, firstIndexOf);
+                                        int secondIndexOf = text.indexOf("?|?");
+                                        String extension = text.substring(firstIndexOf+3, secondIndexOf);
+                                        System.out.println("Sending image of type "+ extension + " to " + toUser);
+                                        byte[] imageInByte = Arrays.copyOfRange(byteStream, secondIndexOf+3, index-2);
+                                        BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageInByte));
+                                        ImageIO.write(img, extension, new File("/home/manh/Desktop/ChatServer/images/1." + extension));
+                                        User usr = findUserByName(toUser);
+                                        usr.dOS.write((".?." + username + "$%^" + extension + "?|?").getBytes(Charset.forName("UTF-8")));
+                                        usr.dOS.write(imageInByte);
+                                        usr.dOS.write("><|".getBytes(Charset.forName("UTF-8")));
+                                    }
                                     else {
 
                                     }
-                                    byteStream = new byte[8096];
+                                    byteStream = new byte[BYTE_STREAM_LENGTH];
                                     index = 0;
                                 }
                                 else {
