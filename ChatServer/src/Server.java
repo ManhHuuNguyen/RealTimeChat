@@ -17,7 +17,7 @@ public class Server {
 
     public static MySqlCon database = null;
     public static ArrayList<User> activeUsers = new ArrayList<>(); // I might change this to a HashMap later
-    private static final int BYTE_STREAM_LENGTH = 40000;
+    private static final int BYTE_STREAM_LENGTH = 1000000;
     public static final String IMAGE_FOLDER_ROUTE = "/home/manh/Desktop/ChatServer/images/";
     public static final File SAVE_IMAGE_FOLDER = new File(IMAGE_FOLDER_ROUTE);
 
