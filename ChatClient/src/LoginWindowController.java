@@ -33,7 +33,7 @@ public class LoginWindowController {
     public static DataOutputStream dOS = null;
     public static ArrayList<String> onlineUsers = new ArrayList<>();
     public FriendListController friendListController;
-    private final int BYTE_STREAM_LENGTH = 40000;
+    private final int BYTE_STREAM_LENGTH = 1000000;
 
     @FXML public void login() throws Exception{
         label.setVisible(false);
